@@ -9,9 +9,23 @@ import SwiftUI
 
 @main
 struct MyMoviesApp: App {
+    @StateObject private var dataController = DataController()
+    
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            TabView {
+                ContentView()
+                    .tabItem {
+                        Label("Search", systemImage: "magnifyingglass")
+                    }
+                
+                FavoritesView()
+                    .tabItem {
+                        Label("Favorites", systemImage: "star")
+                    }
+            }
+            .environment(\.managedObjectContext, dataController.container.viewContext)
+            .environmentObject(dataController)
         }
     }
 }

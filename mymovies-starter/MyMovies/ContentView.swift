@@ -5,6 +5,7 @@
 //  Created by Paul Hudson on 12/05/2021.
 //
 
+import Combine
 import SwiftUI
 
 //
@@ -28,9 +29,35 @@ import SwiftUI
 //
 
 struct ContentView: View {
+    @State private var searchResults = SearchResults(results: [])
+    @StateObject var search = DebouncedText()
+    @State private var request: AnyCancellable?
+    
     var body: some View {
-        Text("Hello, world!")
-            .padding()
+        NavigationView {
+            List {
+                Section(header: TextField("Search for a movie...", text: $search.text)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .textCase(.none)
+                ) {
+                    ForEach(searchResults.results, content: MovieRow.init)
+                }
+            }
+            .listStyle(InsetGroupedListStyle())
+            .navigationTitle("MyMovies")
+            .onChange(of: search.debouncedText, perform: runSearch)
+        }
+    }
+    
+    func runSearch(criteria: String) {
+        request?.cancel()
+        
+        request = URLSession.shared.get(path: "search/movie",
+                                        queryItems: ["query": criteria],
+                                        defaultValue: SearchResults(results: []),
+                                        completion: { results in
+                                            searchResults = results
+                                        })
     }
 }
 
